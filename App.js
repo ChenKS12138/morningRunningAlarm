@@ -18,6 +18,10 @@ const instructions = Platform.select({
     'Shake or press menu button for dev menu',
 });
 
+const parseTimeNum = (raw) => {
+  return raw<10?'0'+String(raw):String(raw);
+}
+
 type Props = {};
 export default class App extends Component<Props> {
   state = {
@@ -45,7 +49,7 @@ export default class App extends Component<Props> {
         <Text style={styles.welcome}>欢迎使用Morning Running Alarm</Text>
         <Text style={styles.instructions}>您需要选取一个时间</Text>
         <TouchableOpacity onPress={this._showDateTimePicker}>
-          <Text style={styles.showTime}>{this.state.selectTime.getHours()+':'+this.state.selectTime.getMinutes()}</Text>
+          <Text style={styles.showTime}>{parseTimeNum(this.state.selectTime.getHours())+":"+parseTimeNum(this.state.selectTime.getMinutes())}</Text>
         </TouchableOpacity>
         <DateTimePicker style='marginTop:30'
           isVisible={this.state.isDateTimePickerVisible}
