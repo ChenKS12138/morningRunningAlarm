@@ -11,6 +11,8 @@ import React, {Component} from 'react';
 import {Platform, StyleSheet,TouchableOpacity, Text, View,Image} from 'react-native';
 import DateTimePicker from 'react-native-modal-datetime-picker';
 
+import ReactNativeAN from 'react-native-alarm-notification';
+
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' + 'Cmd+D or shake for dev menu',
   android:
@@ -22,8 +24,35 @@ const parseTimeNum = (raw) => {
   return raw<10?'0'+String(raw):String(raw);
 }
 
+const fireDate = ReactNativeAN.parseDate(new Date(Date.now() + 1000));     // set the fire date for 1 second from now
+const alarmNotifData = {
+	id: "12345",                                  // Required
+	title: "My Notification Title",               // Required
+	message: "My Notification Message",           // Required
+	channel: "my_channel_id",                     // Required. Same id as specified in MainApplication's onCreate method
+	ticker: "My Notification Ticker",
+	auto_cancel: true,                            // default: true
+	vibrate: true,
+	vibration: 100,                               // default: 100, no vibration if vibrate: false
+	small_icon: "ic_launcher",                    // Required
+	large_icon: "ic_launcher",
+	play_sound: true,
+	sound_name: 'my_sound.mp3',                             // Plays custom notification ringtone if sound_name: null
+	color: "red",
+	schedule_once: true,                          // Works with ReactNativeAN.scheduleAlarm so alarm fires once
+	tag: 'some_tag',
+	fire_date: fireDate,                          // Date for firing alarm, Required for ReactNativeAN.scheduleAlarm.
+
+	// You can add any additional data that is important for the notification
+	// It will be added to the PendingIntent along with the rest of the bundle.
+	// e.g.
+  	data: { foo: "bar" },
+};
+
 type Props = {};
 export default class App extends Component<Props> {
+
+
   state = {
     isDateTimePickerVisible: false,
     selectTime: new Date()
@@ -41,6 +70,8 @@ export default class App extends Component<Props> {
   };
 
   render() {
+    
+    ReactNativeAN.scheduleAlarm(alarmNotifData);
     let pic={
       uri:"http://b394.photo.store.qq.com/psb?/V14XRS3d4HjYJC/sB.R0bG2xkBiTtSi095CASruF1WKEnuvTvSVKeCTjxM!/b/dIoBAAAAAAAA&bo=gAKAAoACgAIRECc!"
     };
