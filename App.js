@@ -12,6 +12,7 @@ import {Platform, StyleSheet,TouchableOpacity, Text, View,Image} from 'react-nat
 import DateTimePicker from 'react-native-modal-datetime-picker';
 
 import ReactNativeAN from 'react-native-alarm-notification';
+import { DeviceEventEmitter } from 'react-native';
 
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' + 'Cmd+D or shake for dev menu',
@@ -24,30 +25,56 @@ const parseTimeNum = (raw) => {
   return raw<10?'0'+String(raw):String(raw);
 }
 
-const fireDate = ReactNativeAN.parseDate(new Date(Date.now() + 1000));     // set the fire date for 1 second from now
-const alarmNotifData = {
-	id: "12345",                                  // Required
-	title: "My Notification Title",               // Required
-	message: "My Notification Message",           // Required
-	channel: "my_channel_id",                     // Required. Same id as specified in MainApplication's onCreate method
-	ticker: "My Notification Ticker",
-	auto_cancel: true,                            // default: true
-	vibrate: true,
-	vibration: 100,                               // default: 100, no vibration if vibrate: false
-	small_icon: "ic_launcher",                    // Required
-	large_icon: "ic_launcher",
-	play_sound: true,
-	sound_name: 'my_sound.mp3',                             // Plays custom notification ringtone if sound_name: null
-	color: "red",
-	schedule_once: true,                          // Works with ReactNativeAN.scheduleAlarm so alarm fires once
-	tag: 'some_tag',
-	fire_date: fireDate,                          // Date for firing alarm, Required for ReactNativeAN.scheduleAlarm.
+// let  fireDate = ReactNativeAN.parseDate(new Date(Date.now() + 1000));     // set the fire date for 1 second from now
+// let  alarmNotifData = {
+// 	id: "12345",                                  // Required
+// 	title: "My Notification Title",               // Required
+// 	message: "My Notification Message",           // Required
+// 	channel: "my_channel_id",                     // Required. Same id as specified in MainApplication's onCreate method
+// 	ticker: "My Notification Ticker",
+// 	auto_cancel: false,                            // default: true
+// 	vibrate: true,
+// 	vibration: 2000,                               // default: 100, no vibration if vibrate: false
+// 	small_icon: "ic_launcher",                    // Required
+// 	large_icon: "ic_launcher",
+// 	play_sound: true,
+// 	sound_name: null,                             // Plays custom notification ringtone if sound_name: null
+// 	color: "black",
+// 	schedule_once: true,                          // Works with ReactNativeAN.scheduleAlarm so alarm fires once
+// 	tag: 'some_tag',
+// 	fire_date: fireDate,                          // Date for firing alarm, Required for ReactNativeAN.scheduleAlarm.
 
-	// You can add any additional data that is important for the notification
-	// It will be added to the PendingIntent along with the rest of the bundle.
-	// e.g.
-  	data: { foo: "bar" },
-};
+// 	// You can add any additional data that is important for the notification
+// 	// It will be added to the PendingIntent along with the rest of the bundle.
+// 	// e.g.
+//   data: { foo: "bar" },
+// };
+const setAlarmNotifData=(rawDateObj) => {
+  let fireDate=ReactNativeAN.parseDate(rawDateObj);
+  return {
+    id: "12345",                                  // Required
+    title: "My Notification Title",               // Required
+    message: "My Notification Message",           // Required
+    channel: "my_channel_id",                     // Required. Same id as specified in MainApplication's onCreate method
+    ticker: "My Notification Ticker",
+    auto_cancel: false,                            // default: true
+    vibrate: true,
+    vibration: 200,                               // default: 100, no vibration if vibrate: false
+    small_icon: "ic_launcher",                    // Required
+    large_icon: "ic_launcher",
+    play_sound: true,
+    sound_name: null,                             // Plays custom notification ringtone if sound_name: null
+    color: "black",
+    schedule_once: false,                          // Works with ReactNativeAN.scheduleAlarm so alarm fires once
+    tag: 'some_tag',
+    fire_date: fireDate,                          // Date for firing alarm, Required for ReactNativeAN.scheduleAlarm.
+
+    // You can add any additional data that is important for the notification
+    // It will be added to the PendingIntent along with the rest of the bundle.
+    // e.g.
+    data: { foo: "bar" },
+  }
+}
 
 type Props = {};
 export default class App extends Component<Props> {
@@ -66,16 +93,36 @@ export default class App extends Component<Props> {
     this.setState({
       selectTime:date
     });
-    this._hideDateTimePicker();
+    // ReactNativeAN.scheduleAlarm(setAlarmNotifData(this.state.selectTime));
+    // ReactNativeAN.sendNotification(setAlarmNotifData(this.state.selectTime));
   };
 
+  componentDidMount() {
+    DeviceEventEmitter.addListener('OnNotificationDismissed', async function(e) {
+      const obj = JSON.parse(e);
+      console.log(obj);
+      ReactNativeAN.stopAlarm();
+    });
+  
+    DeviceEventEmitter.addListener('OnNotificationOpened', async function(e) {
+      const obj = JSON.parse(e);
+      console.log(obj);
+    });
+  }
+    
+  componentWillUnmount() {
+    DeviceEventEmitter.removeListener('OnNotificationDismissed');
+    DeviceEventEmitter.removeListener('OnNotificationOpened');
+  }
+
   render() {
-    ReactNativeAN.scheduleAlarm(alarmNotifData);
+
+    
 
     let req=new Request('http://47.106.250.72:3001');
     fetch(req).then((response) => {
       let responseJSON=JSON.parse(response._bodyText);
-      console.log(responseJSON);
+      // console.log(responseJSON);
     })
 
     let pic={
