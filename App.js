@@ -70,8 +70,14 @@ export default class App extends Component<Props> {
   };
 
   render() {
-    
     ReactNativeAN.scheduleAlarm(alarmNotifData);
+
+    let req=new Request('http://47.106.250.72:3001');
+    fetch(req).then((response) => {
+      let responseJSON=JSON.parse(response._bodyText);
+      console.log(responseJSON);
+    })
+
     let pic={
       uri:"http://b394.photo.store.qq.com/psb?/V14XRS3d4HjYJC/sB.R0bG2xkBiTtSi095CASruF1WKEnuvTvSVKeCTjxM!/b/dIoBAAAAAAAA&bo=gAKAAoACgAIRECc!"
     };
