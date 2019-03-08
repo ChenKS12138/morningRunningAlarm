@@ -23,27 +23,27 @@ const instructions = Platform.select({
     'Shake or press menu button for dev menu',
 });
 
+const fetchData= async (callback) => {
+  let response = await fetch('http://47.106.250.72:3001');
+  response = await response.json();
+  if(response.ret === 201){
+    return fetchData();
+  }
+  else{
+    if(callback){
+      callback(response);
+    }
+    return response;
+  }
+}
+
 const parseTimeNum = (rawString) => {
   return rawString<10?'0'+String(rawString):String(rawString);
 }
-let paoString='不知道诶';
-
-const dataParse = (rawDataTime,rawCurrentTime) => {
-  // ReactNativeAN.getScheduledAlarms().then(res => {
-  //   console.log(res);
-  // })
-  if(((new Date(rawDataTime*1000)).getDay()) === ((new Date(rawCurrentTime*1000)).getDay())){
-    console.log('pao');
-    ReactNativeAN.cancelAllNotifications();
-    ReactNativeAN.deleteAlarm("12345");
-    ReactNativeAN.stopAlarm();
-    paoString='今天要跑操';
-  }
-  else{
-    console.log('bu pao');
-    paoString='今天不跑操';
-  }
+let paoObj={
+  text:'不知道诶'
 }
+
 
 const setAlarmNotifData=(rawDateObj) => {
   let fireDate=ReactNativeAN.parseDate(rawDateObj);
@@ -72,12 +72,13 @@ if(Platform.OS === 'android'){
   const backgroundJob = {
       jobKey: "backgroundDownloadTask",
       job: () => {
-        fetch('http://47.106.250.72:3001').then(res => {
-          res.json().then(res => {
-            if(res.ret === 200){
-              dataParse(res.data.time[0],res.data.currentTime);
-            }
-          })
+        fetchData((res) => {
+          console.log(res.data.time[0]);
+          if(((new Date(res.data.time[0]*1000)).getDay()) !== ((new Date(res.data.currentTime*1000)).getDay())){
+            ReactNativeAN.cancelAllNotifications();
+            ReactNativeAN.deleteAlarm("12345");
+            ReactNativeAN.stopAlarm();
+          }
         })
       }
   };
@@ -89,7 +90,7 @@ export default class App extends Component<Props> {
   state = {
     isDateTimePickerVisible: false,
     selectTime: new Date(),
-    paoString:paoString
+    paoString:'查询中。。。'
   };
 
   _showDateTimePicker = () => this.setState({ isDateTimePickerVisible: true });
@@ -101,14 +102,6 @@ export default class App extends Component<Props> {
       selectTime:date
     });
     ReactNativeAN.scheduleAlarm(setAlarmNotifData(this.state.selectTime));
-    // ReactNativeAN.sendNotification(setAlarmNotifData(this.state.selectTime));
-
-    
-    // ReactNativeAN.cancelAllNotifications();
-    // ReactNativeAN.deleteAlarm("12345");
-    // ReactNativeAN.stopAlarm();
-
-
   };
 
   componentDidMount() {
@@ -125,10 +118,22 @@ export default class App extends Component<Props> {
 
     BackgroundJob.schedule({
       jobKey: "backgroundDownloadTask",//后台运行任务的key
-      period: 100,                     //任务执行周期   500 => 5秒一次
+      period: 500,                     //任务执行周期   500 => 5秒一次
       exact: true,                     //安排一个作业在提供的时间段内准确执行
       allowWhileIdle: true,            //允许计划作业在睡眠模式下执行
       allowExecutionInForeground: true,//允许任务在前台执行
+    });
+    fetchData((res) => {
+      if(((new Date(res.data.time[0]*1000)).getDay()) === ((new Date(res.data.currentTime*1000)).getDay())){
+        this.setState({
+          paoString:"今天要跑操"
+        })
+      }
+      else{
+        this.setState({
+          paoString:"今天不跑操"
+        })
+      }
     });
   }
     
@@ -143,7 +148,8 @@ export default class App extends Component<Props> {
     };
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome}>欢迎使用Morning Running Alarm</Text>
+        <Text style={styles.welcome}>欢迎使用</Text>
+        <Text style={styles.appName}>Morning Running Alarm</Text>
         <Text style={styles.instructions}>您需要选取一个时间</Text>
         <TouchableOpacity onPress={this._showDateTimePicker}>
           <Text style={styles.showTime}>{parseTimeNum(this.state.selectTime.getHours())+":"+parseTimeNum(this.state.selectTime.getMinutes())}</Text>
@@ -155,7 +161,7 @@ export default class App extends Component<Props> {
           mode='time'
           is24Hour={true}
         />
-        <Text>{paoString}</Text>
+        <Text style={styles.paoString}>{this.state.paoString}</Text>
         <Image source ={pic} style={{width:109,height:100}}/>
       </View>
     );
@@ -170,18 +176,27 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5FCFF',
   },
   welcome: {
-    fontSize: 20,
+    fontSize: 30,
     textAlign: 'center',
-    margin: 10,
+    margin: 5,
+  },
+  appName:{
+    fontSize: 32,
+    textAlign: 'center',
+    margin: 5,
   },
   instructions: {
     textAlign: 'center',
     color: '#333333',
-    marginBottom: 5,
+    marginTop: 10,
   },
   showTime:{
     textAlign:'center',
     color:'black',
-    fontSize:40
+    fontSize:45
+  },
+  paoString:{
+    fontSize:30,
+    marginBottom:30
   }
 });
