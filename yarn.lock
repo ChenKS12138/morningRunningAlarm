@@ -4441,7 +4441,7 @@ prompts@^2.0.1:
     kleur "^3.0.2"
     sisteransi "^1.0.0"
 
-prop-types@^15.5.8, prop-types@^15.6.2:
+prop-types@^15.5.10, prop-types@^15.5.8, prop-types@^15.6.1, prop-types@^15.6.2:
   version "15.7.2"
   resolved "http://registry.npm.taobao.org/prop-types/download/prop-types-15.7.2.tgz#52c41e75b8c87e72b9d9360e0206b99dcbffa6c5"
   integrity sha1-UsQedbjIfnK52TYOAga5ncv/psU=
@@ -4529,6 +4529,39 @@ react-is@^16.6.3, react-is@^16.8.1:
   version "16.8.3"
   resolved "http://registry.npm.taobao.org/react-is/download/react-is-16.8.3.tgz#4ad8b029c2a718fc0cfc746c8d4e1b7221e5387d"
   integrity sha1-StiwKcKnGPwM/HRsjU4bciHlOH0=
+
+react-native-alarm-notification@^1.3.1:
+  version "1.3.1"
+  resolved "http://registry.npm.taobao.org/react-native-alarm-notification/download/react-native-alarm-notification-1.3.1.tgz#ee4334234f2c91760f464a82254f9012b0f3eeb4"
+  integrity sha1-7kM0I08skXYPRkqCJU+QErDz7rQ=
+
+react-native-animatable@^1.2.4:
+  version "1.3.1"
+  resolved "http://registry.npm.taobao.org/react-native-animatable/download/react-native-animatable-1.3.1.tgz#f004a7e9de6838d0fbf210d642593cff7affd9ef"
+  integrity sha1-8ASn6d5oOND78hDWQlk8/3r/2e8=
+  dependencies:
+    prop-types "^15.5.10"
+
+react-native-background-job@^2.2.0:
+  version "2.2.0"
+  resolved "http://registry.npm.taobao.org/react-native-background-job/download/react-native-background-job-2.2.0.tgz#539b6416303bd06593e8a12fe43c6fe0b198eea8"
+  integrity sha1-U5tkFjA70GWT6KEv5Dxv4LGY7qg=
+
+react-native-modal-datetime-picker@^6.0.0:
+  version "6.0.0"
+  resolved "http://registry.npm.taobao.org/react-native-modal-datetime-picker/download/react-native-modal-datetime-picker-6.0.0.tgz#8018994524122ad48fd6bc66f26f623c75a49fb3"
+  integrity sha1-gBiZRSQSKtSP1rxm8m9iPHWkn7M=
+  dependencies:
+    prop-types "^15.6.1"
+    react-native-modal "^6.2.0"
+
+react-native-modal@^6.2.0:
+  version "6.5.0"
+  resolved "http://registry.npm.taobao.org/react-native-modal/download/react-native-modal-6.5.0.tgz#46220b2289a41597d344c1db17454611b426a758"
+  integrity sha1-RiILIomkFZfTRMHbF0VGEbQmp1g=
+  dependencies:
+    prop-types "^15.6.1"
+    react-native-animatable "^1.2.4"
 
 react-native@0.58.6:
   version "0.58.6"

@@ -14,6 +14,8 @@ import DateTimePicker from 'react-native-modal-datetime-picker';
 import ReactNativeAN from 'react-native-alarm-notification';
 import { DeviceEventEmitter } from 'react-native';
 
+import BackgroundJob from 'react-native-background-job';
+
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' + 'Cmd+D or shake for dev menu',
   android:
@@ -21,34 +23,28 @@ const instructions = Platform.select({
     'Shake or press menu button for dev menu',
 });
 
-const parseTimeNum = (raw) => {
-  return raw<10?'0'+String(raw):String(raw);
+const parseTimeNum = (rawString) => {
+  return rawString<10?'0'+String(rawString):String(rawString);
+}
+let paoString='不知道诶';
+
+const dataParse = (rawDataTime,rawCurrentTime) => {
+  // ReactNativeAN.getScheduledAlarms().then(res => {
+  //   console.log(res);
+  // })
+  if(((new Date(rawDataTime*1000)).getDay()) === ((new Date(rawCurrentTime*1000)).getDay())){
+    console.log('pao');
+    ReactNativeAN.cancelAllNotifications();
+    ReactNativeAN.deleteAlarm("12345");
+    ReactNativeAN.stopAlarm();
+    paoString='今天要跑操';
+  }
+  else{
+    console.log('bu pao');
+    paoString='今天不跑操';
+  }
 }
 
-// let  fireDate = ReactNativeAN.parseDate(new Date(Date.now() + 1000));     // set the fire date for 1 second from now
-// let  alarmNotifData = {
-// 	id: "12345",                                  // Required
-// 	title: "My Notification Title",               // Required
-// 	message: "My Notification Message",           // Required
-// 	channel: "my_channel_id",                     // Required. Same id as specified in MainApplication's onCreate method
-// 	ticker: "My Notification Ticker",
-// 	auto_cancel: false,                            // default: true
-// 	vibrate: true,
-// 	vibration: 2000,                               // default: 100, no vibration if vibrate: false
-// 	small_icon: "ic_launcher",                    // Required
-// 	large_icon: "ic_launcher",
-// 	play_sound: true,
-// 	sound_name: null,                             // Plays custom notification ringtone if sound_name: null
-// 	color: "black",
-// 	schedule_once: true,                          // Works with ReactNativeAN.scheduleAlarm so alarm fires once
-// 	tag: 'some_tag',
-// 	fire_date: fireDate,                          // Date for firing alarm, Required for ReactNativeAN.scheduleAlarm.
-
-// 	// You can add any additional data that is important for the notification
-// 	// It will be added to the PendingIntent along with the rest of the bundle.
-// 	// e.g.
-//   data: { foo: "bar" },
-// };
 const setAlarmNotifData=(rawDateObj) => {
   let fireDate=ReactNativeAN.parseDate(rawDateObj);
   return {
@@ -57,7 +53,7 @@ const setAlarmNotifData=(rawDateObj) => {
     message: "My Notification Message",           // Required
     channel: "my_channel_id",                     // Required. Same id as specified in MainApplication's onCreate method
     ticker: "My Notification Ticker",
-    auto_cancel: false,                            // default: true
+    auto_cancel: true,                            // default: true
     vibrate: true,
     vibration: 200,                               // default: 100, no vibration if vibrate: false
     small_icon: "ic_launcher",                    // Required
@@ -68,21 +64,32 @@ const setAlarmNotifData=(rawDateObj) => {
     schedule_once: false,                          // Works with ReactNativeAN.scheduleAlarm so alarm fires once
     tag: 'some_tag',
     fire_date: fireDate,                          // Date for firing alarm, Required for ReactNativeAN.scheduleAlarm.
-
-    // You can add any additional data that is important for the notification
-    // It will be added to the PendingIntent along with the rest of the bundle.
-    // e.g.
     data: { foo: "bar" },
   }
 }
 
+if(Platform.OS === 'android'){
+  const backgroundJob = {
+      jobKey: "backgroundDownloadTask",
+      job: () => {
+        fetch('http://47.106.250.72:3001').then(res => {
+          res.json().then(res => {
+            if(res.ret === 200){
+              dataParse(res.data.time[0],res.data.currentTime);
+            }
+          })
+        })
+      }
+  };
+  BackgroundJob.register(backgroundJob);
+}
+
 type Props = {};
 export default class App extends Component<Props> {
-
-
   state = {
     isDateTimePickerVisible: false,
-    selectTime: new Date()
+    selectTime: new Date(),
+    paoString:paoString
   };
 
   _showDateTimePicker = () => this.setState({ isDateTimePickerVisible: true });
@@ -93,8 +100,15 @@ export default class App extends Component<Props> {
     this.setState({
       selectTime:date
     });
-    // ReactNativeAN.scheduleAlarm(setAlarmNotifData(this.state.selectTime));
+    ReactNativeAN.scheduleAlarm(setAlarmNotifData(this.state.selectTime));
     // ReactNativeAN.sendNotification(setAlarmNotifData(this.state.selectTime));
+
+    
+    // ReactNativeAN.cancelAllNotifications();
+    // ReactNativeAN.deleteAlarm("12345");
+    // ReactNativeAN.stopAlarm();
+
+
   };
 
   componentDidMount() {
@@ -108,6 +122,14 @@ export default class App extends Component<Props> {
       const obj = JSON.parse(e);
       console.log(obj);
     });
+
+    BackgroundJob.schedule({
+      jobKey: "backgroundDownloadTask",//后台运行任务的key
+      period: 100,                     //任务执行周期   500 => 5秒一次
+      exact: true,                     //安排一个作业在提供的时间段内准确执行
+      allowWhileIdle: true,            //允许计划作业在睡眠模式下执行
+      allowExecutionInForeground: true,//允许任务在前台执行
+    });
   }
     
   componentWillUnmount() {
@@ -116,16 +138,7 @@ export default class App extends Component<Props> {
   }
 
   render() {
-
-    
-
-    let req=new Request('http://47.106.250.72:3001');
-    fetch(req).then((response) => {
-      let responseJSON=JSON.parse(response._bodyText);
-      // console.log(responseJSON);
-    })
-
-    let pic={
+    const pic={
       uri:"http://b394.photo.store.qq.com/psb?/V14XRS3d4HjYJC/sB.R0bG2xkBiTtSi095CASruF1WKEnuvTvSVKeCTjxM!/b/dIoBAAAAAAAA&bo=gAKAAoACgAIRECc!"
     };
     return (
@@ -142,6 +155,7 @@ export default class App extends Component<Props> {
           mode='time'
           is24Hour={true}
         />
+        <Text>{paoString}</Text>
         <Image source ={pic} style={{width:109,height:100}}/>
       </View>
     );
