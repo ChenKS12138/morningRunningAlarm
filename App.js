@@ -8,7 +8,7 @@
  */
 
 import React, {Component} from 'react';
-import {Platform, StyleSheet,TouchableOpacity, Text, View,Image} from 'react-native';
+import {Platform, StyleSheet,TouchableOpacity, Text, View,Image,Button} from 'react-native';
 import DateTimePicker from 'react-native-modal-datetime-picker';
 
 import ReactNativeAN from 'react-native-alarm-notification';
@@ -40,10 +40,6 @@ const fetchData= async (callback) => {
 const parseTimeNum = (rawString) => {
   return rawString<10?'0'+String(rawString):String(rawString);
 }
-let paoObj={
-  text:'不知道诶'
-}
-
 
 const setAlarmNotifData=(rawDateObj) => {
   let fireDate=ReactNativeAN.parseDate(rawDateObj);
@@ -72,6 +68,17 @@ if(Platform.OS === 'android'){
   const backgroundJob = {
       jobKey: "backgroundDownloadTask",
       job: () => {
+        ReactNativeAN.getScheduledAlarms()
+          .then(res =>{
+            // if(res.length){
+            //   console.log(res[0].fire_date);
+            //   // console.log((res[0].fire_date.replace(/-/g,'/')))
+            // }
+            // else{
+            //   console.log(res);
+            // }
+            console.log(res);
+          })
         fetchData((res) => {
           console.log(res.data.time[0]);
           if(((new Date(res.data.time[0]*1000)).getDay()) !== ((new Date(res.data.currentTime*1000)).getDay())){
@@ -90,7 +97,8 @@ export default class App extends Component<Props> {
   state = {
     isDateTimePickerVisible: false,
     selectTime: new Date(),
-    paoString:'查询中。。。'
+    paoString:'查询中。。。',
+    btnDisabled:true
   };
 
   _showDateTimePicker = () => this.setState({ isDateTimePickerVisible: true });
@@ -99,10 +107,23 @@ export default class App extends Component<Props> {
 
   _handleDatePicked = (date) => {
     this.setState({
-      selectTime:date
+      selectTime:date,
     });
     ReactNativeAN.scheduleAlarm(setAlarmNotifData(this.state.selectTime));
+    this.setState({
+      btnDisabled:false
+    })
   };
+  _resetClick = () => {
+    ReactNativeAN.cancelAllNotifications();
+    ReactNativeAN.deleteAlarm("12345");
+    ReactNativeAN.stopAlarm();
+    this.setState({
+      selectTime:new Date(),
+      isDateTimePickerVisible:true
+    });
+    this._showDateTimePicker();
+  }
 
   componentDidMount() {
     DeviceEventEmitter.addListener('OnNotificationDismissed', async function(e) {
@@ -124,7 +145,12 @@ export default class App extends Component<Props> {
       allowExecutionInForeground: true,//允许任务在前台执行
     });
     fetchData((res) => {
-      if(((new Date(res.data.time[0]*1000)).getDay()) === ((new Date(res.data.currentTime*1000)).getDay())){
+      if(res.data.time.length ===0){
+        this.setState({
+          paoString:"服务器似乎开小差惹..."
+        })
+      }
+      else if(((new Date(res.data.time[0]*1000)).getDay()) === ((new Date(res.data.currentTime*1000)).getDay())){
         this.setState({
           paoString:"今天要跑操"
         })
@@ -161,6 +187,7 @@ export default class App extends Component<Props> {
           mode='time'
           is24Hour={true}
         />
+        <Button disabled={this.state.btnDisabled} style={styles.reset} title="RESET" onPress={this._resetClick}/>
         <Text style={styles.paoString}>{this.state.paoString}</Text>
         <Image source ={pic} style={{width:109,height:100}}/>
       </View>
