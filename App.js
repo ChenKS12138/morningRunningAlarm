@@ -89,7 +89,9 @@ export default class App extends Component<Props> {
     isDateTimePickerVisible: false,
     selectTime: new Date(),
     paoString:'查询中。。。',
-    btnDisabled:true
+    btnDisabled:false,
+    paoStringColor:'#333333',
+    showTimeColor:'#C7C7C7'
   };
 
   _showDateTimePicker = () => this.setState({ isDateTimePickerVisible: true });
@@ -97,8 +99,6 @@ export default class App extends Component<Props> {
   _hideDateTimePicker = () => this.setState({ isDateTimePickerVisible: false });
 
   _handleDatePicked = (date) => {
-    // console.log(date.getTime());
-    console.log(new Date().getTime())
     if(date.getTime() < (new Date().getTime())){
       date= new Date(date.setTime(date.getTime() + 86400000));//若设定的时间小于当前时间，则将时间向前推进一天
     }
@@ -108,20 +108,12 @@ export default class App extends Component<Props> {
     fireDate=date;
     ReactNativeAN.scheduleAlarm(setAlarmNotifData(this.state.selectTime));
     this.setState({
-      btnDisabled:false
+      btnDisabled:true
+    })
+    this.setState({
+      showTimeColor:'#000000'
     })
   };
-  _resetClick = () => {
-    ReactNativeAN.cancelAllNotifications();
-    ReactNativeAN.deleteAlarm("12345");
-    ReactNativeAN.stopAlarm();
-    this.setState({
-      selectTime:new Date(),
-      isDateTimePickerVisible:true
-    });
-    fireDate=null;
-    this._showDateTimePicker();
-  }
 
   componentDidMount() {
     DeviceEventEmitter.addListener('OnNotificationDismissed', async function(e) {
@@ -145,17 +137,20 @@ export default class App extends Component<Props> {
     fetchData((res) => {
       if(res.data.time.length ===0){
         this.setState({
-          paoString:"服务器似乎开小差惹..."
+          paoString:"服务器似乎开小差惹...",
+          paoStringColor:"#333333"
         })
       }
       else if(((new Date(res.data.time[0]*1000)).getDay()) === ((new Date(res.data.currentTime*1000)).getDay())){
         this.setState({
-          paoString:"今天要跑操"
+          paoString:"今天要跑操",
+          paoStringColor:'#B22222'
         })
       }
       else{
         this.setState({
-          paoString:"今天不跑操"
+          paoString:"今天不跑操",
+          paoStringColor:"#9ACD32"
         })
       }
     });
@@ -174,10 +169,15 @@ export default class App extends Component<Props> {
       <View style={styles.container}>
         <Text style={styles.welcome}>欢迎使用</Text>
         <Text style={styles.appName}>Morning Running Alarm</Text>
-        <Text style={styles.instructions}>您需要选取一个时间</Text>
-        <TouchableOpacity onPress={this._showDateTimePicker}>
-          <Text style={styles.showTime}>{parseTimeNum(this.state.selectTime.getHours())+":"+parseTimeNum(this.state.selectTime.getMinutes())}</Text>
-        </TouchableOpacity>
+        <Text style={{
+          fontSize:30,
+          marginBottom:20,
+          color:this.state.paoStringColor
+        }} >{this.state.paoString}</Text>
+        <Button disabled={this.state.btnDisabled}
+          style={styles.btn}
+          title="点击以选取一个时间" 
+          onPress={this._showDateTimePicker}/>
         <DateTimePicker style='marginTop:30'
           isVisible={this.state.isDateTimePickerVisible}
           onConfirm={this._handleDatePicked}
@@ -185,8 +185,14 @@ export default class App extends Component<Props> {
           mode='time'
           is24Hour={true}
         />
-        <Button disabled={this.state.btnDisabled} style={styles.reset} title="RESET" onPress={this._resetClick}/>
-        <Text style={styles.paoString}>{this.state.paoString}</Text>
+        <Text style={{
+          textAlign:'center',
+          color:this.state.showTimeColor,
+          fontSize:45,
+          borderWidth:3,
+          marginTop:30,
+          borderColor: this.state.showTimeColor,
+        }}>{parseTimeNum(this.state.selectTime.getHours())+":"+parseTimeNum(this.state.selectTime.getMinutes())}</Text>
         <Image source ={pic} style={{width:109,height:100}}/>
       </View>
     );
@@ -210,18 +216,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     margin: 5,
   },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginTop: 10,
-  },
-  showTime:{
-    textAlign:'center',
-    color:'black',
-    fontSize:45
-  },
-  paoString:{
-    fontSize:30,
+  btn:{
     marginBottom:30
   }
 });

@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
     "test": "jest",
-    "android": "react-native run-android"
+    "android": "react-native run-android",
+    "logcat": "adb logcat *:S ReactNative:V ReactNativeJS:V"
   },
   "dependencies": {
     "react": "16.6.3",
