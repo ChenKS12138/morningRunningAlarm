@@ -69,15 +69,22 @@ if(Platform.OS === 'android'){
   const backgroundJob = {
       jobKey: "backgroundDownloadTask",
       job: () => {
-        console.log(fireDate);
-        fetchData((res) => {
-          console.log(res.data.time[0]);
-          if(((new Date(res.data.time[0]*1000)).getDay()) !== ((new Date(res.data.currentTime*1000)).getDay())){
-            ReactNativeAN.cancelAllNotifications();
-            ReactNativeAN.deleteAlarm("12345");
-            ReactNativeAN.stopAlarm();
+        console.log(Date.now());
+        if(fireDate){
+          if(fireDate.getTime() - Date.now() < 3600000){
+            fetchData((res) => {
+              if(((new Date(res.data.time[0]*1000)).getDay()) !== ((new Date(res.data.currentTime*1000)).getDay())){
+                ReactNativeAN.cancelAllNotifications();
+                ReactNativeAN.deleteAlarm("12345");
+                ReactNativeAN.stopAlarm();
+                console.log(res);
+              }
+            })
           }
-        })
+          else{
+            console.log('时间还很早');
+          }
+        }
       }
   };
   BackgroundJob.register(backgroundJob);
@@ -100,8 +107,10 @@ export default class App extends Component<Props> {
   _hideDateTimePicker = () => this.setState({ isDateTimePickerVisible: false });
 
   _handleDatePicked = (date) => {
-    if(date.getTime() < (new Date().getTime())){
-      date= new Date(date.setTime(date.getTime() + 86400000));//若设定的时间小于当前时间，则将时间向前推进一天
+    let isTomorrow=String();
+    if(date.getTime() < (Date.now())){
+      date= new Date(date.setTime(date.getTime() + 86400000));//若设定的时间小于当前时间，则将时间向后推一天
+      isTomorrow="明天";
     }
     this.setState({
       selectTime:date,
@@ -116,7 +125,7 @@ export default class App extends Component<Props> {
     });
     Alert.alert(
       '请注意👇',
-      `闹钟将于${date.getHours()+':'+date.getMinutes()}响铃,若明早不需要跑操,闹钟自动取消.为了避免未知的意外,请不要将程序退出或清除后台`,
+      `闹钟将于 ${isTomorrow} ${+date.getHours()+':'+date.getMinutes()} 响铃,若明早不需要跑操,闹钟自动取消.为了避免未知的意外,请不要将程序退出或清除后台`,
       [
         {text:'好的',onPress: () => {ToastAndroid.show("闹钟已生效",ToastAndroid.SHORT);}}
       ],
