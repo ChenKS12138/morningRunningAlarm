@@ -77,13 +77,18 @@ if(Platform.OS === 'android'){
                 ReactNativeAN.cancelAllNotifications();
                 ReactNativeAN.deleteAlarm("12345");
                 ReactNativeAN.stopAlarm();
-                console.log(res);
+                console.log(res.data.time);
+                BackgroundJob.cancel({jobKey:'backgroundDownloadTask'})
+                ToastAndroid.show("闹钟已自动取消",ToastAndroid.SHORT);
               }
             })
           }
           else{
             console.log('时间还很早');
           }
+        }
+        else{
+          console.log('尚未选取时间');
         }
       }
   };
@@ -125,7 +130,7 @@ export default class App extends Component<Props> {
     });
     Alert.alert(
       '请注意👇',
-      `闹钟将于 ${isTomorrow} ${+date.getHours()+':'+date.getMinutes()} 响铃,若明早不需要跑操,闹钟自动取消.为了避免未知的意外,请不要将程序退出或清除后台`,
+      `闹钟将于 ${isTomorrow} ${+date.getHours()+':'+date.getMinutes()} 响铃,若那时不需要跑操,闹钟将自动取消.为了避免未知的意外,请不要将程序退出或清除后台`,
       [
         {text:'好的',onPress: () => {ToastAndroid.show("闹钟已生效",ToastAndroid.SHORT);}}
       ],
