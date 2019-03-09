@@ -63,22 +63,13 @@ const setAlarmNotifData=(rawDateObj) => {
     data: { foo: "bar" },
   }
 }
+let fireDate=null;
 
 if(Platform.OS === 'android'){
   const backgroundJob = {
       jobKey: "backgroundDownloadTask",
       job: () => {
-        ReactNativeAN.getScheduledAlarms()
-          .then(res =>{
-            // if(res.length){
-            //   console.log(res[0].fire_date);
-            //   // console.log((res[0].fire_date.replace(/-/g,'/')))
-            // }
-            // else{
-            //   console.log(res);
-            // }
-            console.log(res);
-          })
+        console.log(fireDate);
         fetchData((res) => {
           console.log(res.data.time[0]);
           if(((new Date(res.data.time[0]*1000)).getDay()) !== ((new Date(res.data.currentTime*1000)).getDay())){
@@ -106,9 +97,15 @@ export default class App extends Component<Props> {
   _hideDateTimePicker = () => this.setState({ isDateTimePickerVisible: false });
 
   _handleDatePicked = (date) => {
+    // console.log(date.getTime());
+    console.log(new Date().getTime())
+    if(date.getTime() < (new Date().getTime())){
+      date= new Date(date.setTime(date.getTime() + 86400000));//若设定的时间小于当前时间，则将时间向前推进一天
+    }
     this.setState({
       selectTime:date,
     });
+    fireDate=date;
     ReactNativeAN.scheduleAlarm(setAlarmNotifData(this.state.selectTime));
     this.setState({
       btnDisabled:false
@@ -122,6 +119,7 @@ export default class App extends Component<Props> {
       selectTime:new Date(),
       isDateTimePickerVisible:true
     });
+    fireDate=null;
     this._showDateTimePicker();
   }
 
