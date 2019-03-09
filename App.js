@@ -139,6 +139,13 @@ export default class App extends Component<Props> {
     this.setState({
       btnString:"时间已选取"
     })
+    BackgroundJob.schedule({
+      jobKey: "backgroundDownloadTask",//后台运行任务的key
+      period: 500,                     //任务执行周期   500 => 5秒一次
+      exact: true,                     //安排一个作业在提供的时间段内准确执行
+      allowWhileIdle: true,            //允许计划作业在睡眠模式下执行
+      allowExecutionInForeground: true,//允许任务在前台执行
+    });
   };
 
   componentDidMount() {
@@ -153,13 +160,6 @@ export default class App extends Component<Props> {
       console.log(obj);
     });
 
-    BackgroundJob.schedule({
-      jobKey: "backgroundDownloadTask",//后台运行任务的key
-      period: 500,                     //任务执行周期   500 => 5秒一次
-      exact: true,                     //安排一个作业在提供的时间段内准确执行
-      allowWhileIdle: true,            //允许计划作业在睡眠模式下执行
-      allowExecutionInForeground: true,//允许任务在前台执行
-    });
     fetchData((res) => {
       if(res.data.time.length ===0){
         this.setState({
