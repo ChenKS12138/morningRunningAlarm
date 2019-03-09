@@ -8,7 +8,7 @@
  */
 
 import React, {Component} from 'react';
-import {Platform, StyleSheet,TouchableOpacity, Text, View,Image,Button} from 'react-native';
+import {Platform, StyleSheet,TouchableOpacity, Text, View,Image,Button,Alert,ToastAndroid} from 'react-native';
 import DateTimePicker from 'react-native-modal-datetime-picker';
 
 import ReactNativeAN from 'react-native-alarm-notification';
@@ -91,7 +91,8 @@ export default class App extends Component<Props> {
     paoString:'查询中。。。',
     btnDisabled:false,
     paoStringColor:'#333333',
-    showTimeColor:'#C7C7C7'
+    showTimeColor:'#C7C7C7',
+    btnString:'点击以选取一个时间'
   };
 
   _showDateTimePicker = () => this.setState({ isDateTimePickerVisible: true });
@@ -112,6 +113,17 @@ export default class App extends Component<Props> {
     })
     this.setState({
       showTimeColor:'#000000'
+    });
+    Alert.alert(
+      '请注意👇',
+      `闹钟将于${date.getHours()+':'+date.getMinutes()}响铃,若明早不需要跑操,闹钟自动取消.为了避免未知的意外,请不要将程序退出或清除后台`,
+      [
+        {text:'好的',onPress: () => {ToastAndroid.show("闹钟已生效",ToastAndroid.SHORT);}}
+      ],
+      {cancelable:false}
+    );
+    this.setState({
+      btnString:"时间已选取"
     })
   };
 
@@ -176,7 +188,7 @@ export default class App extends Component<Props> {
         }} >{this.state.paoString}</Text>
         <Button disabled={this.state.btnDisabled}
           style={styles.btn}
-          title="点击以选取一个时间" 
+          title={this.state.btnString} 
           onPress={this._showDateTimePicker}/>
         <DateTimePicker style='marginTop:30'
           isVisible={this.state.isDateTimePickerVisible}
