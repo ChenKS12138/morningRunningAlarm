@@ -80,6 +80,23 @@ if(Platform.OS === 'android'){
                 console.log(res.data.time);
                 BackgroundJob.cancel({jobKey:'backgroundDownloadTask'})
                 ToastAndroid.show("闹钟已自动取消",ToastAndroid.SHORT);
+                ReactNativeAN.sendNotification({
+                  id: "123",                                  // Required
+                  title: "闹钟已被取消",               // Required
+                  message: "您的闹钟已被自动取消",           // Required
+                  channel: "my_channel_id",                     // Required. Same id as specified in MainApplication's onCreate method
+                  ticker: "My Notification Ticker",
+                  auto_cancel: true,                            // default: true
+                  vibrate: false,
+                  vibration: 0,                               // default: 100, no vibration if vibrate: false
+                  small_icon: "ic_launcher",                    // Required
+                  large_icon: "ic_launcher",
+                  play_sound: false,
+                  sound_name: null,                             // Plays custom notification ringtone if sound_name: null
+                  color: "black",
+                  schedule_once: true,                          // Works with ReactNativeAN.scheduleAlarm so alarm fires once
+                  tag: 'some_tag',
+                })
               }
             })
           }
