@@ -8,8 +8,10 @@
  */
 
 import React, {Component} from 'react';
-import {Platform, StyleSheet,TouchableOpacity, Text, View,Image,Button,Alert,ToastAndroid} from 'react-native';
+import {Platform, StyleSheet,TouchableOpacity, Text, View,Image,Button,Alert,ToastAndroid,StatusBar,AppState} from 'react-native';
 import DateTimePicker from 'react-native-modal-datetime-picker';
+import {Header} from 'react-native-elements';
+import SwitchSelector from 'react-native-switch-selector';
 
 import ReactNativeAN from 'react-native-alarm-notification';
 import { DeviceEventEmitter } from 'react-native';
@@ -27,6 +29,7 @@ const fetchData= async (callback) => {
   let response = await fetch('http://47.106.250.72:3001');
   response = await response.json();
   if(response.ret === 201){
+    console.log("again");
     return fetchData();
   }
   else{
@@ -121,13 +124,59 @@ export default class App extends Component<Props> {
     btnDisabled:false,
     paoStringColor:'#333333',
     showTimeColor:'#C7C7C7',
-    btnString:'点击以选取一个时间'
+    btnString:'点击以选取一个时间',
+    positionBtn:{
+      xianlin:true,
+      paipaipai:false
+    }
   };
 
+  _fetch = (value = 1) => {
+    this.setState({
+      paoString:"查询中。。。"
+    })
+    fetchData((res) => {
+      if(res.data.time.length ===0){
+        this.setState({
+          paoString:"服务器似乎开小差惹...",
+          paoStringColor:"#333333"
+        })
+      }
+      else{
+        switch(value){
+          case 1:
+            if(((new Date(res.data.time[0]*1000)).getDay()) === ((new Date(res.data.currentTime*1000)).getDay())){
+              this.setState({
+                paoString:"今天要跑操",
+                paoStringColor:'#B22222'
+              })
+            }
+            else{
+              this.setState({
+                paoString:"今天不跑操",
+                paoStringColor:"#9ACD32"
+              })
+            };
+            break;
+          case 2:
+            if(((new Date(res.data.time2[0]*1000)).getDay()) === ((new Date(res.data.currentTime*1000)).getDay())){
+              this.setState({
+                paoString:"今天要跑操",
+                paoStringColor:'#B22222'
+              })
+            }
+            else{
+              this.setState({
+                paoString:"今天不跑操",
+                paoStringColor:"#9ACD32"
+              })
+            }
+        }
+      }
+    });
+  }
   _showDateTimePicker = () => this.setState({ isDateTimePickerVisible: true });
-
   _hideDateTimePicker = () => this.setState({ isDateTimePickerVisible: false });
-
   _handleDatePicked = (date) => {
     let isTomorrow=String();
     if(date.getTime() < (Date.now())){
@@ -164,6 +213,9 @@ export default class App extends Component<Props> {
       allowExecutionInForeground: true,//允许任务在前台执行
     });
   };
+  _switchToxianlin = () => {
+    return 0;
+  }
 
   componentDidMount() {
     DeviceEventEmitter.addListener('OnNotificationDismissed', async function(e) {
@@ -176,27 +228,12 @@ export default class App extends Component<Props> {
       const obj = JSON.parse(e);
       console.log(obj);
     });
-
-    fetchData((res) => {
-      if(res.data.time.length ===0){
-        this.setState({
-          paoString:"服务器似乎开小差惹...",
-          paoStringColor:"#333333"
-        })
+    this._fetch();
+    AppState.addEventListener('change',(nextState) => {
+      if(nextState === 'active'){
+        this._fetch();
       }
-      else if(((new Date(res.data.time[0]*1000)).getDay()) === ((new Date(res.data.currentTime*1000)).getDay())){
-        this.setState({
-          paoString:"今天要跑操",
-          paoStringColor:'#B22222'
-        })
-      }
-      else{
-        this.setState({
-          paoString:"今天不跑操",
-          paoStringColor:"#9ACD32"
-        })
-      }
-    });
+    })
   }
     
   componentWillUnmount() {
@@ -210,13 +247,40 @@ export default class App extends Component<Props> {
     };
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome}>欢迎使用</Text>
-        <Text style={styles.appName}>Morning Running Alarm</Text>
+        <StatusBar translucent={true} backgroundColor='#1874CD'/>
+        <Header 
+          placement="center"
+          centerComponent={{ text: 'MR Alarm', style: { color: '#fff' ,fontSize:30} }}
+          containerStyle={{
+            backgroundColor:'#1874CD',
+            shadowColor:'black'
+          }}
+        />
         <Text style={{
           fontSize:30,
+          marginTop:100,
           marginBottom:20,
           color:this.state.paoStringColor
         }} >{this.state.paoString}</Text>
+        <Text style={{
+          marginBottom:5
+        }}>我在哪个校区:</Text>
+        <SwitchSelector
+          options={[
+            {label:"仙林",value:1},
+            {label:"牌牌牌楼",value:2}
+          ]}
+          initial={0}//这是指options中的第几个,而不是value
+          onPress={value => {
+            this._fetch(value);
+          }}
+          style={{
+            width:200,
+            marginBottom:30
+          }}
+          selectedColor={'white'}
+          buttonColor={'#1874CD'}
+        />
         <Button disabled={this.state.btnDisabled}
           style={styles.btn}
           title={this.state.btnString} 
@@ -245,7 +309,7 @@ export default class App extends Component<Props> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    // justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F5FCFF',
   },
