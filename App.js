@@ -43,6 +43,7 @@ const fetchData= async (callback) => {
 const parseTimeNum = (rawString) => {
   return rawString<10?'0'+String(rawString):String(rawString);
 }
+let positionValue = 1;
 
 const setAlarmNotifData=(rawDateObj) => {
   let fireDate=ReactNativeAN.parseDate(rawDateObj);
@@ -74,13 +75,13 @@ if(Platform.OS === 'android'){
       job: () => {
         console.log(Date.now());
         if(fireDate){
+          console.log(positionValue);
           if(fireDate.getTime() - Date.now() < 3600000){
             fetchData((res) => {
-              if(((new Date(res.data.time[0]*1000)).getDay()) !== ((new Date(res.data.currentTime*1000)).getDay())){
+              if((positionValue === 1 &&(((new Date(res.data.time[0]*1000)).getDay()) !== ((new Date(res.data.currentTime*1000)).getDay())))||(positionValue === 2 &&(((new Date(res.data.time2[0]*1000)).getDay()) !== ((new Date(res.data.currentTime*1000)).getDay())))){
                 ReactNativeAN.cancelAllNotifications();
                 ReactNativeAN.deleteAlarm("12345");
                 ReactNativeAN.stopAlarm();
-                console.log(res.data.time);
                 BackgroundJob.cancel({jobKey:'backgroundDownloadTask'})
                 ToastAndroid.show("闹钟已自动取消",ToastAndroid.SHORT);
                 ReactNativeAN.sendNotification({
@@ -131,7 +132,7 @@ export default class App extends Component<Props> {
     }
   };
 
-  _fetch = (value = 1) => {
+  _fetch = (value = positionValue) => {
     this.setState({
       paoString:"查询中。。。"
     })
@@ -213,9 +214,6 @@ export default class App extends Component<Props> {
       allowExecutionInForeground: true,//允许任务在前台执行
     });
   };
-  _switchToxianlin = () => {
-    return 0;
-  }
 
   componentDidMount() {
     DeviceEventEmitter.addListener('OnNotificationDismissed', async function(e) {
@@ -231,7 +229,7 @@ export default class App extends Component<Props> {
     this._fetch();
     AppState.addEventListener('change',(nextState) => {
       if(nextState === 'active'){
-        this._fetch();
+        this._fetch(positionValue);
       }
     })
   }
@@ -272,7 +270,8 @@ export default class App extends Component<Props> {
           ]}
           initial={0}//这是指options中的第几个,而不是value
           onPress={value => {
-            this._fetch(value);
+            positionValue=value
+            this._fetch();
           }}
           style={{
             width:200,
@@ -280,6 +279,10 @@ export default class App extends Component<Props> {
           }}
           selectedColor={'white'}
           buttonColor={'#1874CD'}
+          borderColor={'#1874CD'}
+          borderRadius={10}
+          hasPadding={true}
+          // disabled={true}
         />
         <Button disabled={this.state.btnDisabled}
           style={styles.btn}
