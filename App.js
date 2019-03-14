@@ -263,9 +263,9 @@ export default class App extends Component<Props> {
             shadowColor: 'black'
           }}
         />
+        <Image source={pic} style={{ width: 109, height: 100 ,marginTop: 50}} />
         <Text style={{
           fontSize: 30,
-          marginTop: 100,
           color: this.state.paoStringColor
         }} >{this.state.paoString}</Text>
         <Text style={{
@@ -316,7 +316,6 @@ export default class App extends Component<Props> {
           marginTop: 30,
           borderColor: this.state.showTimeColor,
         }}>{parseTimeNum(this.state.selectTime.getHours()) + ":" + parseTimeNum(this.state.selectTime.getMinutes())}</Text>
-        <Image source={pic} style={{ width: 109, height: 100 }} />
       </View>
     );
   }
