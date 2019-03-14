@@ -122,6 +122,7 @@ export default class App extends Component<Props> {
     isDateTimePickerVisible: false,
     selectTime: new Date(),
     paoString:'查询中。。。',
+    content:null,
     btnDisabled:false,
     paoStringColor:'#333333',
     showTimeColor:'#C7C7C7',
@@ -134,18 +135,24 @@ export default class App extends Component<Props> {
 
   _fetch = (value = positionValue) => {
     this.setState({
-      paoString:"查询中。。。"
+      paoString:"查询中。。。",
+      content:null
     })
     fetchData((res) => {
+      console.log(this.state);
       if(res.data.time.length ===0){
         this.setState({
           paoString:"服务器似乎开小差惹...",
-          paoStringColor:"#333333"
+          paoStringColor:"#333333",
+          content:null
         })
       }
       else{
         switch(value){
           case 1:
+            this.setState({
+              content:res.data.content[0]
+            });//这部分逻辑可能有问题，我是基于爱服务每天都会发说说这个假设写的
             if(((new Date(res.data.time[0]*1000)).getDay()) === ((new Date(res.data.currentTime*1000)).getDay())){
               this.setState({
                 paoString:"今天要跑操",
@@ -155,11 +162,14 @@ export default class App extends Component<Props> {
             else{
               this.setState({
                 paoString:"今天不跑操",
-                paoStringColor:"#9ACD32"
+                paoStringColor:"#9ACD32",
               })
             };
             break;
           case 2:
+            this.setState({
+              content:res.data.content2[0]
+            })
             if(((new Date(res.data.time2[0]*1000)).getDay()) === ((new Date(res.data.currentTime*1000)).getDay())){
               this.setState({
                 paoString:"今天要跑操",
@@ -174,6 +184,7 @@ export default class App extends Component<Props> {
             }
         }
       }
+      // console.log(this.state);
     });
   }
   _showDateTimePicker = () => this.setState({ isDateTimePickerVisible: true });
@@ -257,18 +268,22 @@ export default class App extends Component<Props> {
         <Text style={{
           fontSize:30,
           marginTop:100,
-          marginBottom:20,
           color:this.state.paoStringColor
         }} >{this.state.paoString}</Text>
         <Text style={{
+          color:this.state.paoStringColor,
+          marginBottom:10
+        }}
+        >{this.state.content}</Text>
+        <Text style={{
           marginBottom:5
-        }}>我在哪个校区:</Text>
+        }}>哪个校区的爱服务:</Text>
         <SwitchSelector
           options={[
             {label:"仙林",value:1},
             {label:"牌牌牌楼",value:2}
           ]}
-          initial={0}//这是指options中的第几个,而不是value
+          initial={1}//这是指options中的第几个,而不是value
           onPress={value => {
             positionValue=value
             this._fetch();
