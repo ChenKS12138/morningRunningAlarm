@@ -73,12 +73,10 @@ if (Platform.OS === 'android') {
   const backgroundJob = {
     jobKey: "backgroundDownloadTask",
     job: () => {
-      console.log(Date.now());
       if (fireDate) {
-        console.log(positionValue);
         if (fireDate.getTime() - Date.now() < 3600000) {
           fetchData((res) => {
-            if ((positionValue === 1 && (((new Date(res.data.time[0] * 1000)).getDay()) !== ((new Date(res.data.currentTime * 1000)).getDay()))) || (positionValue === 2 && (((new Date(res.data.time2[0] * 1000)).getDay()) !== ((new Date(res.data.currentTime * 1000)).getDay())))) {
+            if ((positionValue === 1 && (((new Date(res.data.time[0] * 1000)).getDate()) !== ((new Date(res.data.currentTime * 1000)).getDate()))) || (positionValue === 2 && (((new Date(res.data.time2[0] * 1000)).getDate()) !== ((new Date(res.data.currentTime * 1000)).getDate())))) {
               ReactNativeAN.cancelAllNotifications();
               ReactNativeAN.deleteAlarm("12345");
               ReactNativeAN.stopAlarm();
@@ -132,16 +130,17 @@ export default class App extends Component<Props> {
       paipaipai: false
     },
     switchSelectorDisable:false,
-    switchSelectorColor:'#1874CD'
+    switchSelectorColor:'#1874CD',
+    lastUpdateTimeString:null
   };
 
   _fetch = (value = positionValue) => {
     this.setState({
       paoString: "查询中。。。",
-      content: null
+      content: null,
+      lastUpdateTimeString:null
     })
     fetchData((res) => {
-      console.log(this.state);
       if (res.data.time.length === 0) {
         this.setState({
           paoString: "服务器似乎开小差惹...",
@@ -150,12 +149,26 @@ export default class App extends Component<Props> {
         })
       }
       else {
+        let dTime = Math.round(Date.now()/1000) - res.data.lastUpdateTime;
+        if(dTime < 60){
+          dTime = dTime + "秒前";
+        }
+        else if(dTime < 3600){
+          dTime = Math.round(dTime/60) + "分钟前";
+        }
+        else {
+          dTime = "long long ago";
+        }
+        this.setState({
+          lastUpdateTimeString:dTime
+        });
+
         switch (value) {
           case 1:
             this.setState({
               content: res.data.content[0]
             });//这部分逻辑可能有问题，我是基于爱服务每天都会发说说这个假设写的
-            if (((new Date(res.data.time[0] * 1000)).getDay()) === ((new Date(res.data.currentTime * 1000)).getDay())) {
+            if (((new Date(res.data.time[0] * 1000)).getDate()) === ((new Date(res.data.currentTime * 1000)).getDate())) {
               this.setState({
                 paoString: "今天要跑操",
                 paoStringColor: '#B22222'
@@ -172,7 +185,7 @@ export default class App extends Component<Props> {
             this.setState({
               content: res.data.content2[0]
             })
-            if (((new Date(res.data.time2[0] * 1000)).getDay()) === ((new Date(res.data.currentTime * 1000)).getDay())) {
+            if (((new Date(res.data.time2[0] * 1000)).getDate()) === ((new Date(res.data.currentTime * 1000)).getDate())) {
               this.setState({
                 paoString: "今天要跑操",
                 paoStringColor: '#B22222'
@@ -269,8 +282,13 @@ export default class App extends Component<Props> {
           color: this.state.paoStringColor
         }} >{this.state.paoString}</Text>
         <Text style={{
-          color: this.state.paoStringColor,
-          marginBottom: 10
+          color:this.state.paoStringColor,
+          marginBottom:10,
+          fontSize:10,
+          left:40
+        }}>{this.state.lastUpdateTimeString}</Text>
+        <Text style={{
+          color: this.state.paoStringColor
         }}
         >{this.state.content}</Text>
         <Text style={{
